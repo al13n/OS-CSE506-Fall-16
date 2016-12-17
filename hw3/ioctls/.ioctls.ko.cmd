@@ -1,0 +1,1 @@
+cmd_/usr/src/hw3-cse506p35/hw3/ioctls/ioctls.ko := ld -r -m elf_x86_64 -T ./scripts/module-common.lds --build-id  -o /usr/src/hw3-cse506p35/hw3/ioctls/ioctls.ko /usr/src/hw3-cse506p35/hw3/ioctls/ioctls.o /usr/src/hw3-cse506p35/hw3/ioctls/ioctls.mod.o

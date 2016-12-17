@@ -1,0 +1,7 @@
+0x6e3e9920	list_all_vectors	/usr/src/hw3-cse506p35/hw3/hook_syscall_table/hook_syscall_table	EXPORT_SYMBOL
+0x94339772	register_vector	/usr/src/hw3-cse506p35/hw3/hook_syscall_table/hook_syscall_table	EXPORT_SYMBOL
+0xd935bfb7	increment_ref_count	/usr/src/hw3-cse506p35/hw3/hook_syscall_table/hook_syscall_table	EXPORT_SYMBOL
+0x802414c3	update_process_vector_id	/usr/src/hw3-cse506p35/hw3/hook_syscall_table/hook_syscall_table	EXPORT_SYMBOL
+0x1dcd08a6	unregister_vector	/usr/src/hw3-cse506p35/hw3/hook_syscall_table/hook_syscall_table	EXPORT_SYMBOL
+0x60b2bb11	reduce_ref_count	/usr/src/hw3-cse506p35/hw3/hook_syscall_table/hook_syscall_table	EXPORT_SYMBOL
+0xb8cb487b	original_syscall	/usr/src/hw3-cse506p35/hw3/hook_syscall_table/hook_syscall_table	EXPORT_SYMBOL

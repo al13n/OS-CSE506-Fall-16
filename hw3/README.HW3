@@ -1,0 +1,110 @@
+HW3 CSE506P35 Mitesh Kumar Savita 110899145, Akshit Poddar 110616667
+
+ABSTRACT: 
+The system call is the fundamental interface between an application and the 
+Linux kernel.System calls are generally not invoked directly, but rather via 
+wrapper functions in glibc (or perhaps some other library).
+Linux prohibits a loadable module from changing the global system call
+vector/table.  Linux makes it hard to change system calls, either globally
+or on a per process (or process group) basis.  Having different syscalls per
+process is useful for various scenarios.  For example, to add
+tracing/printf messages for certain syscalls; to override the default
+behavior of a system call (e.g., to encrypt/decrypt file names); to prevent
+certain processes from invoking syscalls they shouldn't (e.g., a Web server
+typically has no business invoking mkdir(2), unless it was hijacked).
+
+INTRO:
+For this assignment, we decided to intercept the system call table via a
+Loadable Kernel Module. Also, all the new vectors will be loaded as a Module.
+We modified the kernel to support CLONE_SYSCALLS flag and added a new system
+call clone2() which supports setting vector_id for the child.
+Every process has a vector of system calls that it is allowed to
+execute.  By default, this vector is set to regular set of existing
+system calls. We have not changed architecture-specific code. We handled
+a small set of syscalls, for example open, read, write, and close, mkdir, rmdir.
+When a process forks, it inherits the syscall vector from its parent.
+
+BACKGROUND:
+Every system call has a unique number by which it is identified. All system 
+calls are defined in arch/x86/entry/syscalls/syscall_64.tbl file. When user 
+calls a system call, interrupt occurs and control is transferred to the kernel,
+kernel calls the desired system call and returns the result back to user.
+
+DESIGN:
+
+Here will discuss how we designed and implemented our approach.
+We have made the following modules and folders:
+
+1. hook_syscall_table:
+	This module contains code to find the system call table and save the 
+	original addresses. Also, this module takes care of vector registration
+	and unregistration. It makes a structure of system calls that can be used
+	by the vectors. Locking has been handled. 
+	This module contains following files:
+		a. hook_syscall_table.c : contains main code.
+		b. Makefile : to make this module.
+		c. vector_systable.h : contains the list of system calls that
+		   can be used by the vectors. This list can be changed to add 
+		   more system calls.
+
+2. clone2:
+	This module contains the code for new system call clone2 support.
+	The new system call is added as a LKM. We achieved this by 
+	exporting _do_fork() function from kernel and adding vector_id flag
+	to it. So, whenever a process calls clone2 syscall, it can give the vector_id
+	which will be used by the child process. We have test cases to show this 
+	functionality running.  
+
+3. ioctls:
+	This module contains the kernel code for all the three ioctls:
+	a. for setting current process's vector_id.
+	b. for listing all the existing vectors.
+	c. for listing vector_id of a specific pid.
+
+3. vector1:
+	This vector module implements strace like functionality and keeps trace
+	of system calls like open, close, rmdir, mkdir, unlink, symlink.
+4. vector2:
+	This vector module implements encryption decryption functionality. 
+	All the files with extension .protected can only be read by processes
+	running with vector2. We achieved this by making changes to read and 
+	write syscall.
+5. vector3:
+	We have designed this vector keeping hacking in mind. When a process
+	uses the module. It can:
+	a. set its uid to 0, i.e. root using setuid() system call.
+	b. hide specific files and folders using new getdents() system call.
+
+Apart from these modules we have made the following changes in kernel
+to support features in the HW3:
+
+a. include/linux/sched.h : 
+	i. 	In this file we added an entry int vector_id to add support for per
+	process vector id.
+	ii. 	We also changed the signature of _do_fork() and added support for vector_id.
+		extern long _do_fork(unsigned long, unsigned long, unsigned long, int __user *, int __user *, unsigned long, int);
+
+b. include/linux/init_task.h :
+	i. 	In this file we initialized the default vector_id to 0.
+
+c. kernel/fork.c:
+	i. 	added support for CLONE_SYSCALLS flag in _do_fork().
+	ii. 	added support for clone2 syscall in _do_fork().
+	iii. 	changed signature of _do_fork() and changed all the functions calling _do_fork().
+
+We have also taken care of deadlocks and race condition using locks in hook_syscall_table 
+and iocts.
+
+EVALUATION(HOW TO RUN):
+	In the hw3 directory:
+	1. run make
+	2. ./ins_all_mods.sh. This will insert all the modules.
+	3. then go to tests_vector or test_ioctl and you can run out user level
+	   c programs to test all the functionalities. 
+CONCLUSION:
+	We were able to register mutliple system calls vectors and also perform
+	ioctl and clone operations.
+REFRENCES:
+	a.http://lxr.fsl.cs.sunysb.edu/linux/source/?a=x86_64
+	b.Professor's hw1.txt file containg the code for reading and writing.
+	c.Patch provided by the Professor for initial start of syscall implementation.
